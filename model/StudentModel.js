@@ -31,10 +31,11 @@ const Schema = new mongoose.Schema(
       default: "fullTime",
       enum: ["fullTime", "partTime"],
     },
-    role: {
+   role: {
       type: String,
+      required: true,
       default: "student",
-      enum: ["student", "admin"],
+      
     },
   },
   {
