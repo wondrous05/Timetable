@@ -45,7 +45,7 @@ const SignUp = async (req, res) => {
       from: process.env.USER_EMAIL,
       to: `${newAdmin.email}`,
       subject: "welcome",
-      text: `Dear User welcome to NACOS MAPOLY Time-Table website. You are now an ADMIN`,
+      text: `Dear User welcome to NACOS MAPOLY Time-Table Pro website. You are now an ADMIN`,
     };
 
     //send the mail options
@@ -84,11 +84,11 @@ const Login = async (req, res) => {
     }
 
     const payload = {
-      id: checkpass.id,
-      role: checkpass.role,
-      email: checkpass.email,
+      id: checkadmin.id,
+      role: checkadmin.role,
+      email: checkadmin.email,
     };
-    const token = jwt.sign(payload, process.env.JWTSCRET, {
+    const token = jwt.sign(payload, process.env.JWT_SECRET, {
       expiresIn: process.env.EXPIRESIN,
     });
     return res.status(200).json({ msg: "login succesful", token });
@@ -120,7 +120,7 @@ const Forgotpassword = async (req, res) => {
     await admin.save();
 
     const transporter = nodemmailer.createTransport({
-      service: "gamail",
+      service: "gmail",
       auth: {
         user: process.env.USER_EMAIL,
         pass: process.env.USER_PASSWORD,
@@ -169,7 +169,7 @@ const Resetpassword = async (req, res) => {
 
     const admin = await Admin.findOne({
       resetToken: token,
-      resetTokenExpiration: { $gt: Date.now() },
+      resetTokenExpiry: { $gt: Date.now() },
     });
 
     if (!admin) {
@@ -194,52 +194,7 @@ const Resetpassword = async (req, res) => {
 
 const createTable = async (req, res) => {
   try {
-    const { course, time, day, semester, year, lectureRoom, lecturer, level } =
-      req.body;
-    const checkTable = await timeTable.findOne({
-      day,
-      lectureRoom,
-      time,
-      semester,
-      year,
-      
-    });
-
-    if (checkTable) {
-      return res
-        .status(403)
-        .json({ msg: "the venue is already in use for this time schedule" });
-    }
-
-
-    const checkLecturer = await timeTable.findOne({lecturer, day, time});
-
-
-    if (checkLecturer) {
-      return res.status(403).json({ msg: "lecturer is fixed for the schedule day and time"})
-    }
-
-
-
-
-       /* const existingBooking = await timeTable.findOne({
-      lectureRoom,
-      time,
-      day,
-      semester,
-      year
-    });
-
-    if (existingBooking) {
-      return res.status(409).json({
-        msg: `Lecture room '${lectureRoom}' is already booked for ${day} at ${time}`
-      });
-    }*/
-
-    if (!req.body) {
-      return res.status(403).json({ msg: "All fields must be filled" });
-    }
-    const newTable = new timeTable({
+    const {
       course,
       time,
       day,
@@ -248,16 +203,73 @@ const createTable = async (req, res) => {
       lectureRoom,
       lecturer,
       level,
+      department,
+    } = req.body;
+
+    // ✅ Validate required fields
+    if (!course || !time || !day || !semester || !year || !lectureRoom || !lecturer || !level || !department) {
+      return res.status(400).json({ msg: "All fields are required" });
+    }
+
+    // ✅ Normalize values
+    const normalizedDay = day.toLowerCase();  // keep days consistent (e.g., "monday")
+
+    // ✅ Check if venue is already booked at same time/day/semester/year
+    const checkTable = await timeTable.findOne({
+      day: normalizedDay,
+      lectureRoom,
+      time,
+      semester,
+      year,
+    });
+
+    if (checkTable) {
+      return res.status(403).json({
+        msg: "The venue is already in use for this schedule",
+      });
+    }
+
+    // ✅ Check if lecturer already has a class at that time/day
+    const checkLecturer = await timeTable.findOne({
+      lecturer,
+      day: normalizedDay,
+      time,
+      year,
+    });
+
+    if (checkLecturer) {
+      return res.status(403).json({
+        msg: "Lecturer already has a class scheduled at this time",
+      });
+    }
+
+    // ✅ Save new timetable entry
+    const newTable = new timeTable({
+      course,
+      time,
+      day: normalizedDay,
+      semester,
+      year,
+      lectureRoom,
+      lecturer,
+      level,
+      department,
     });
 
     await newTable.save();
 
-    return res.status(201).json({ msg: "Time table created" });
+    return res.status(201).json({
+      msg: "Timetable created successfully",
+      data: newTable,
+    });
   } catch (error) {
-    console.log(error);
-
-    return res.status(500).json({ msg: "Internal server Error" });
+    console.error(error);
+    return res.status(500).json({
+      msg: "Internal server error",
+      error: error.message,
+    });
   }
 };
+
 
 module.exports = { SignUp, Login, Forgotpassword, Resetpassword, createTable };

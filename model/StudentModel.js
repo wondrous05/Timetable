@@ -19,9 +19,10 @@ const Schema = new mongoose.Schema(
     },
     level: {
       type: String,
+      enum: ["ND1", "ND2", "HND1", "HND2"],
       required: true,
     },
-    Department: {
+    department: {
       type: String,
       required: true,
     },

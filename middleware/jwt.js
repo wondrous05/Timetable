@@ -1,24 +1,34 @@
-const jwt = require('jsonwebtoken');
+const jwt = require("jsonwebtoken");
 
 const isAuthenticated = async (req, res, next) => {
-    try {
-        const authHeader = req.headers.authorization.split(" ")[1]
+  const authHeader = req.headers["authorization"];
 
-        if(!authHeader) {
-            return res.status(401).json({msg: "No token found"})
-        }
+  if (!authHeader) {
+    return res.status(401).json({ msg: "No token, authorization denied" });
+  }
 
-        const decoded = jwt.verify(authHeader, process.env.JWTSECRET)
+  // Expected format: "Bearer <token>"
+  const token = authHeader.startsWith("Bearer ")
+    ? authHeader.split(" ")[1]
+    : authHeader;
 
-        if(!decoded) {
-            return res.status(403).json({msg: "Invalid Signature"})
-        }
+    console.log(token);
+    
+  if (!token) {
+    return res.status(401).json({ msg: "Token missing" });
+  }
 
-        req.user = decoded;
-        next();
-    } catch (error) {
-        return res.status(500).json({msg:'you are not authorized'})
-    }
-}
+  try {
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    req.user = decoded; // attach decoded payload
+    console.log(decoded);
+    
+    next();
+  } catch (err) {
+    console.error("JWT Verification Error:", err.message);
+    return res.status(401).json({ msg: "Invalid or expired token" });
+  }
+};
+
 
 module.exports = isAuthenticated;

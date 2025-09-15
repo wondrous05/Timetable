@@ -1,10 +1,15 @@
-// const nodemailer = ('nodemailer');
+const nodemailer = require('nodemailer');
 
 
 
-// const sendmail = () => {
-   
-// }
+const Sendmail = () => {
+nodemailer.createTransport({
+    service: "gmail",
+    auth: {
+      user: process.env.USER_EMAIL,
+      pass: process.env.USER_PASSWORD,
+    },
+  });
+}
 
-
-// module.exports = sendmail
+module.exports = Sendmail;

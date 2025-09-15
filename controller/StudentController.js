@@ -7,7 +7,7 @@ const time = require("../model/timeTable.model");
 const port = process.env.PORT;
 
 const SignUp = async (req, res) => {
-  const { email, password, matricNo, level, Department, modeOfStudy, role } =
+  const { email, password, matricNo, level, department, modeOfStudy, role } =
     req.body;
 
   try {
@@ -26,7 +26,7 @@ const SignUp = async (req, res) => {
       password: hash,
       matricNo,
       level,
-      Department,
+      department,
       modeOfStudy,
       role,
     });
@@ -46,7 +46,7 @@ const SignUp = async (req, res) => {
       from: process.env.USER_EMAIL,
       to: `${newStudent.email}`,
       subject: "Welcome",
-      text: `Dear User welcome to NACOS MAPOLY Time-Table website`,
+      text: `Dear User welcome to NACOS MAPOLY Time-Table Pro website`,
     };
 
     // Send the email
@@ -74,7 +74,7 @@ const Login = async (req, res) => {
     const checkstudent = await Student.findOne({ email: email });
 
     if (!checkstudent) {
-      return res.status(404).json({ msg: "data not found" });
+      return res.status(404).json({ msg: "user does not exist try to signup" });
     }
     const checkpass = await bcrypt.compare(password, checkstudent.password);
 
@@ -82,11 +82,11 @@ const Login = async (req, res) => {
       return res.status(404).json({ msg: "incorrect password" });
     }
     const payload = {
-      id: checkpass._id,
-      role: checkpass.role,
-      email: checkpass.email,
+      id: checkstudent._id,
+      role: checkstudent.role,
+      email: checkstudent.email,
     };
-    const token = jwt.sign(payload, process.env.JWTSCRET, {
+    const token = jwt.sign(payload, process.env.JWT_SECRET, {
       expiresIn: process.env.EXPIRESIN,
     });
     return res.status(200).json({ msg: "login successful", token });
@@ -115,7 +115,7 @@ const Forgotpassword = async (req, res) => {
     student.resetTokenExpiry = tokenExpiration;
     console.log(token);
 
-    await student.save();
+   await student.save({ validateBeforeSave: false });
 
     const transporter = nodemailer.createTransport({
       service: "gmail",
@@ -196,8 +196,25 @@ const Resetpassword = async (req, res) => {
 
 const ViewTable = async (req, res) => {
   try {
-    const timeTable = await time.findOne({level, year, semester, dep});
-  } catch (error) {}
+    const { semester, level, year, department } = req.query;
+
+    const timeTable = await time.find({
+      semester,
+      level,
+      year,
+      department,   // now filter by course
+    });
+
+    if (!timeTable || timeTable.length === 0) {
+      return res.status(404).json({ msg: "No timetable found" });
+    }
+
+    return res.status(200).json(timeTable);
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({ msg: "Server Error", error });
+  }
 };
 
-module.exports = { SignUp, Login, Forgotpassword, Resetpassword };
+
+module.exports = { SignUp, Login, Forgotpassword, Resetpassword, ViewTable };

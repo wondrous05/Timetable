@@ -21,7 +21,11 @@ const Schema = new mongoose.Schema({
   role: {
     type: String,
     required: true,
-    default: "Admin",
+    default: "admin",
+  },
+  department: {
+    type: String,
+  
   },
   resetToken: {
     type: String,

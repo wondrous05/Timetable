@@ -1,21 +1,29 @@
 {
   "name": "src",
   "version": "1.0.0",
-  "main": "index.js",
+  "description": "",
+  "main": "app.js",
   "scripts": {
     "dev": "nodemon app.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/wondrous05/Timetable.git"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
-  "description": "",
+  "bugs": {
+    "url": "https://github.com/wondrous05/Timetable/issues"
+  },
+  "homepage": "https://github.com/wondrous05/Timetable#readme",
   "dependencies": {
     "bcrypt": "^6.0.0",
-    "crypto": "^1.0.1",
-    "dotenv": "^17.2.1",
+    "cors": "^2.8.5",
+    "dotenv": "^17.2.2",
     "express": "^5.1.0",
     "jsonwebtoken": "^9.0.2",
-    "mongoose": "^8.18.0",
+    "mongoose": "^8.18.1",
     "morgan": "^1.10.1",
     "nodemailer": "^7.0.6"
   }
