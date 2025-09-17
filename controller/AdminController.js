@@ -272,4 +272,10 @@ const createTable = async (req, res) => {
 };
 
 
-module.exports = { SignUp, Login, Forgotpassword, Resetpassword, createTable };
+
+
+ 
+
+
+
+module.exports = { SignUp, Login, Forgotpassword, Resetpassword, createTable, };

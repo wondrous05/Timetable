@@ -48,6 +48,11 @@ const Schema = new mongoose.Schema({
     ],
   },
   course: { type: String, required: true },
+  //  createdBy: {
+  //   type: mongoose.Schema.Types.ObjectId,
+  //   ref: "Admin",           // references the Admin collection
+  //   required: true,
+  // },
 });
 
 const timeSchema = mongoose.model("Timetable", Schema);
